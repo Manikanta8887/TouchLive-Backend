@@ -1,64 +1,31 @@
+require("dotenv").config();
 const express = require("express");
-const http = require("http");
-const socketIO = require("socket.io");
+const mongoose = require("mongoose");
 const cors = require("cors");
+const userRoutes = require("./Routes/userRoutes");
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server, {
-    cors: {
-        origin: "http://localhost:3000", // Allow React frontend
-        methods: ["GET", "POST"]
-    }
-});
 
+app.use(cors({
+  origin: ["http://localhost:3000", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-let rooms = {}; // Store active rooms
+app.use(express.json());
 
-// When a user connects
-io.on("connection", (socket) => {
-    console.log(`User Connected: ${socket.id}`);
+console.log("MongoDB URI:", process.env.MONGO_URI);
+const mongoURI = process.env.MONGO_URI;
+if (!mongoURI) {
+  console.error("MONGO_URI is missing in .env file");
+  process.exit(1);
+}
 
-    // User joins a room
-    socket.on("join-room", (roomId) => {
-        if (!rooms[roomId]) {
-            rooms[roomId] = [];
-        }
-        rooms[roomId].push(socket.id);
-        socket.join(roomId);
+mongoose.connect(mongoURI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB Error:", err));
 
-        console.log(`User ${socket.id} joined Room: ${roomId}`);
+app.use("/api/users", userRoutes);
 
-        // Notify existing users
-        socket.emit("existing-users", rooms[roomId].filter((id) => id !== socket.id));
-        io.to(roomId).emit("user-joined", { userId: socket.id, roomId });
-    });
-
-    // When an offer is sent
-    socket.on("offer", ({ userId, offer }) => {
-        socket.to(userId).emit("offer", { userId: socket.id, offer });
-    });
-
-    // When an answer is received
-    socket.on("answer", ({ userId, answer }) => {
-        socket.to(userId).emit("answer", { userId: socket.id, answer });
-    });
-
-    // Handle ICE candidates
-    socket.on("ice-candidate", ({ userId, candidate }) => {
-        socket.to(userId).emit("ice-candidate", { userId: socket.id, candidate });
-    });
-
-    // When a user leaves
-    socket.on("disconnect", () => {
-        for (const roomId in rooms) {
-            rooms[roomId] = rooms[roomId].filter((id) => id !== socket.id);
-            io.to(roomId).emit("user-left", socket.id);
-            if (rooms[roomId].length === 0) delete rooms[roomId];
-        }
-        console.log(`User Disconnected: ${socket.id}`);
-    });
-});
-
-// Start the server
-server.listen(5000, () => console.log("Signaling Server running on port 5000"));
+const PORT = 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

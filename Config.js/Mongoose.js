@@ -2,7 +2,7 @@ const mongoose = require("mongoose")
 const dotenv = require("dotenv")
 dotenv.config()
 
-const mongouri = `mongodb+srv://${process.env.name}:${process.env.password}@touchlive.phqnk.mongodb.net/?retryWrites=true&w=majority&appName=Touchlive`
+const mongouri = `${process.env.Mongo_uri}`
 
 mongoose.connect(mongouri)
     .then(() => console.log("Mongodb Connected Successfully"))

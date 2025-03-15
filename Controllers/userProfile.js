@@ -1,4 +1,4 @@
-import {User} from "../Models/User"
+const {User}= require('../Models/User')
 
 
 const getUserProfile = async (req, res) => {

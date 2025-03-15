@@ -6,7 +6,6 @@ dotenv.config();
 const mongoURI = process.env.mongo_uri;
 
 if (!mongoURI) {
-  console.error("MONGO_URI is missing in .env file");
   process.exit(1);
 }
 

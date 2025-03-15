@@ -1,12 +1,12 @@
-const express = require("express");
-const  saveUser = require("../Controllers/userController");
+import express from "express";
+import saveUser from "../Controllers/userController";
 
 const router = express.Router();
 
 router.post("/", saveUser);
 
 
-module.exports = router;
+export default  router;
 
 
 

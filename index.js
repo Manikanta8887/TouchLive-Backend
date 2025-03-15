@@ -6,7 +6,7 @@ const userRoutes = require("./Routes/userRoutes");
 const profileRoutes = require("./Routes/profileRoutes");
 
 const app = express();
-
+// cors are used to allow resources from other ports 
 app.use(cors({
   origin: ["http://localhost:3000", "http://localhost:5173", "http://localhost:5174"],
   methods: ["GET", "POST", "PUT", "DELETE"],

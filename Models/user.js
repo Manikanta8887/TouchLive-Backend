@@ -8,7 +8,6 @@ const UserSchema = new mongoose.Schema({
   bio: { type: String, default: "Streamer" }
 }, { timestamps: true });
 
-// ✅ Prevent duplicate model compilation:
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
 module.exports = User;

@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const mongoURI = process.env.MONGO_URI;
+const mongoURI = process.env.mongo_uri;
 
 if (!mongoURI) {
   console.error("MONGO_URI is missing in .env file");

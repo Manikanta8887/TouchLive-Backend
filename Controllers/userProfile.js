@@ -1,4 +1,5 @@
-const userProfile = require("../Models/User")
+import userProfile from "../Models/User"
+
 
 const getUserProfile = async (req, res) => {
     try {

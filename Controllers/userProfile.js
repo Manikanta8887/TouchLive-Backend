@@ -1,6 +1,4 @@
-const User= require('../Models/User')
-
-
+import  User from '../Models/User.js'
 const getUserProfile = async (req, res) => {
     try {
       const user = await User.findOne({ uid: req.params.uid });

@@ -1,12 +1,12 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./Config/Mongoose");
-const userRoutes = require("./Routes/userRoutes");
-const profileRoutes = require("./Routes/profileRoutes");
-
+import dotenv from "dotenv";
+import express from "express"; 
+import cors from "cors";
+import connectDB from "./Config/Mongoose.js"; 
+import userRoutes from "./Routes/userRoutes.js"; 
+import profileRoutes from "./Routes/profileRoutes.js"; 
+dotenv.config()
 const app = express();
-// cors are used to allow resources from other ports 
+// cors are used to allow resources from other ports
 app.use(cors({
   origin: ["http://localhost:3000", "http://localhost:5173", "http://localhost:5174"],
   methods: ["GET", "POST", "PUT", "DELETE"],

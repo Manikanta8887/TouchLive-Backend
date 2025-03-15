@@ -1,4 +1,4 @@
-const User= require('../Models/User')
+import  User from '../Models/User.js'
 
 const saveUser = async (req, res) => {
   try {

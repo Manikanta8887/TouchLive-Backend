@@ -8,7 +8,7 @@ dotenv.config()
 const app = express();
 // cors are used to allow resources from other ports
 app.use(cors({
-  origin: ["https://full-stack-project-mani.vercel.app/"],
+  origin: ["https://full-stack-project-mani.vercel.app/","https://full-stack-project-mani-g8hbn4yzs-manikanta8887s-projects.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));

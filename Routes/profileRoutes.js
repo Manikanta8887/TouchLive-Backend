@@ -1,6 +1,6 @@
 const express = require("express");
-const { getUserProfile } = require("../Controllers/userProfile.js");
-const { updateUserProfile } = require("../Controllers/bioUpdate.js");
+const getUserProfile = require("../Controllers/userProfile.js");
+const  updateUserProfile  = require("../Controllers/bioUpdate.js");
 
 const router = express.Router();
 

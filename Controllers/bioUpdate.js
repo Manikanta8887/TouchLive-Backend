@@ -1,4 +1,4 @@
-import User from "../Models/User"
+import {User} from "../Models/User"
 
 const updateUserProfile = async (req, res) => {
   try {
@@ -16,4 +16,4 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-module.exports = { updateUserProfile };
+export default updateUserProfile ;

@@ -1,9 +1,9 @@
-import userProfile from "../Models/User"
+import {User} from "../Models/User"
 
 
 const getUserProfile = async (req, res) => {
     try {
-      const user = await userProfile.findOne({ uid: req.params.uid });
+      const user = await User.findOne({ uid: req.params.uid });
       if (!user) return res.status(404).json({ message: "User not found" });
   
       res.json(user);
@@ -13,5 +13,5 @@ const getUserProfile = async (req, res) => {
   };
 
 
-module.exports={getUserProfile}
+export default getUserProfile;
 

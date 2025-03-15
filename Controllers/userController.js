@@ -1,4 +1,4 @@
-import User from "../Models/User"
+import {User} from "../Models/User"
 
 const saveUser = async (req, res) => {
   try {
@@ -18,4 +18,5 @@ const saveUser = async (req, res) => {
   }
 };
 
-module.exports = { saveUser };
+export default saveUser
+

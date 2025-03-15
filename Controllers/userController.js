@@ -13,7 +13,7 @@ const saveUser = async (req, res) => {
     }
     res.status(200).json({ message: "User already exists!" });
   } catch (error) {
-    console.error("Error saving user:", error);
+    console.error("Error Saving User:", error);
     res.status(500).json({ error: "Server Error: Unable to save user", details: error.message });
   }
 };

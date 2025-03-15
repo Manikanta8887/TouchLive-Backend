@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const mongoURI = process.env.mongo_uri;
+const mongoURI = process.env.MONGO_URI;
 
 if (!mongoURI) {
   process.exit(1);

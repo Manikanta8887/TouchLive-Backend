@@ -71,7 +71,7 @@ const app = express();
 
 // ✅ Optimized CORS Setup
 app.use(cors({
-  origin: ["https://full-stack-project-mani.vercel.app", "http://localhost:5000"],
+  origin: ["https://full-stack-project-mani.vercel.app", "https://full-stack-project-rho.vercel.app", "http://localhost:5000"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));

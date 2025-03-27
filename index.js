@@ -69,7 +69,6 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Optimized CORS Setup
 app.use(cors({
   origin: ["https://full-stack-project-mani.vercel.app", "https://full-stack-project-rho.vercel.app", "http://localhost:5000"],
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -95,5 +94,60 @@ connectDB();
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 
+
+// const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
+// const cors = require("cors");
+
+// const app = express();
+app.use(cors());
+
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: { origin: "*" },
+});
+
+let liveStreams = [];
+
+io.on("connection", (socket) => {
+  console.log("New user connected");
+
+  socket.on("offer", (offer, streamTitle) => {
+    liveStreams.push({ id: socket.id, streamTitle });
+    socket.broadcast.emit("offer", offer);
+  });
+
+  socket.on("answer", (answer) => {
+    socket.broadcast.emit("answer", answer);
+  });
+
+  socket.on("candidate", (candidate) => {
+    socket.broadcast.emit("candidate", candidate);
+  });
+
+  socket.on("stop-stream", () => {
+    liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
+    socket.broadcast.emit("stream-stopped", socket.id);
+  });
+
+  socket.on("disconnect", () => {
+    liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
+    socket.broadcast.emit("stream-stopped", socket.id);
+  });
+});
+
+io.on("connection", (socket) => {
+  socket.on("chat-message", (msg) => {
+    io.emit("chat-message", msg);
+  });
+});
+
+
+// server.listen(5000, () => console.log("Server running on port 5000"));
+
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

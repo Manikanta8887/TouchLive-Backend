@@ -152,20 +152,23 @@
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
-
 import dotenv from "dotenv";
-import express from "express"; 
+import express from "express";
 import cors from "cors";
-import { createServer } from "http";  // ✅ Updated import for HTTP Server
-import { Server } from "socket.io";   // ✅ Updated import for Socket.io
-import connectDB from "./Config/Mongoose.js"; 
-import userRoutes from "./Routes/userRoutes.js"; 
-import profileRoutes from "./Routes/profileRoutes.js"; 
+import { createServer } from "http";  // ✅ Import HTTP Server
+import { Server } from "socket.io";   // ✅ Import Socket.io
+import connectDB from "./Config/Mongoose.js";
+import userRoutes from "./Routes/userRoutes.js";
+import profileRoutes from "./Routes/profileRoutes.js";
 
 dotenv.config();
 
 // ✅ Initialize Express App
 const app = express();
+const server = createServer(app); // ✅ Create HTTP Server
+const io = new Server(server, {
+  cors: { origin: "*", methods: ["GET", "POST"] },
+});
 
 // ✅ Connect Database
 connectDB();
@@ -182,10 +185,9 @@ app.use(cors({
   credentials: true
 }));
 
-// ✅ Handle Preflight Requests
 app.options("*", cors());
 
-// ✅ Set Security Headers (Fix for COOP issue)
+// ✅ Security Headers
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -196,20 +198,13 @@ app.use((req, res, next) => {
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 
-// ✅ Create HTTP Server
-const server = createServer(app);
-
-// ✅ Initialize Socket.io with CORS
-const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
-});
-
 let liveStreams = [];
 
+// ✅ SINGLE Socket.io Connection Handling
 io.on("connection", (socket) => {
   console.log(`New user connected: ${socket.id}`);
 
-  // 🔹 Handle Live Streaming
+  // 🔹 Handle WebRTC Signaling
   socket.on("offer", (offer, streamTitle) => {
     liveStreams.push({ id: socket.id, streamTitle });
     socket.broadcast.emit("offer", offer);
@@ -228,7 +223,7 @@ io.on("connection", (socket) => {
     io.emit("stream-stopped", socket.id);
   });
 
-  // 🔹 Handle Chat Messages
+  // 🔹 Handle Chat Messaging
   socket.on("chat-message", (msg) => {
     io.emit("chat-message", msg);
   });
@@ -241,17 +236,5 @@ io.on("connection", (socket) => {
   });
 });
 
-// ✅ Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-// ✅ Handle Uncaught Errors
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  process.exit(1);
-});

@@ -92,6 +92,8 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import connectDB from "./Config/Mongoose.js";
+import userRoutes from "./Routes/userRoutes.js";
+import profileRoutes from "./Routes/profileRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -105,7 +107,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "https://full-stack-project-mani.vercel.app", 
+    origin: ["https://full-stack-project-mani.vercel.app", "https://full-stack-project-rho.vercel.app/", "http://localhost:5000"], 
     credentials: true, 
     methods: "GET, POST, PUT, DELETE",
     allowedHeaders: "Content-Type, Authorization",

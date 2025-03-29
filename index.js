@@ -102,7 +102,6 @@ const io = new Server(server, {
 
 connectDB();
 app.use(express.json());
-const cors = require("cors");
 
 app.use(
   cors({

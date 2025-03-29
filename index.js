@@ -113,6 +113,9 @@ app.use(
 );
 
 
+app.use("/api/users", userRoutes);
+app.use("/api/profile", profileRoutes);
+
 let liveStreams = [];
 
 io.on("connection", (socket) => {

@@ -1,118 +1,56 @@
 // import dotenv from "dotenv";
-// import express from "express"; 
+// import express from "express";
 // import cors from "cors";
-// import connectDB from "./Config/Mongoose.js"; 
-// import userRoutes from "./Routes/userRoutes.js"; 
-// import profileRoutes from "./Routes/profileRoutes.js"; 
-// dotenv.config()
-// const app = express();
-// // cors are used to allow resources from other ports
-// app.use(cors({
-//   origin: ["https://full-stack-project-mani.vercel.app","http://localhost:5000"],
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   credentials: true
-// }));
-
-// app.use(express.json());
-
-// connectDB();
-
-// app.use("/api/users", userRoutes);
-// app.use("/api/profile",profileRoutes)
-
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-// import dotenv from "dotenv";
-// import express from "express"; 
-// import cors from "cors";
-// import connectDB from "./Config/Mongoose.js"; 
-// import userRoutes from "./Routes/userRoutes.js"; 
-// import profileRoutes from "./Routes/profileRoutes.js"; 
+// import { createServer } from "http";  // ✅ Import HTTP Server
+// import { Server } from "socket.io";   // ✅ Import Socket.io
+// import connectDB from "./Config/Mongoose.js";
+// import userRoutes from "./Routes/userRoutes.js";
+// import profileRoutes from "./Routes/profileRoutes.js";
 
 // dotenv.config();
 
+// // ✅ Initialize Express App
 // const app = express();
-
-// // ✅ Optimized CORS Setup
-// app.use(cors({
-//   origin: ["https://full-stack-project-mani.vercel.app", "http://localhost:5000"],
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   credentials: true
-// }));
-
-// // ✅ Handle Preflight Requests
-// app.options("*", cors());
-
-// app.use(express.json());
+// const server = createServer(app); // ✅ Create HTTP Server
+// const io = new Server(server, {
+//   cors: { origin: "*", methods: ["GET", "POST"] },
+// });
 
 // // ✅ Connect Database
 // connectDB();
 
-// // ✅ Define Routes
-// app.use("/api/users", userRoutes);
-// app.use("/api/profile", profileRoutes);
-
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-// import dotenv from "dotenv";
-// import express from "express"; 
-// import cors from "cors";
-// import connectDB from "./Config/Mongoose.js"; 
-// import userRoutes from "./Routes/userRoutes.js"; 
-// import profileRoutes from "./Routes/profileRoutes.js"; 
-
-// dotenv.config();
-
-// const app = express();
-
+// // ✅ Middleware
+// app.use(express.json());
 // app.use(cors({
-//   origin: ["https://full-stack-project-mani.vercel.app", "https://full-stack-project-rho.vercel.app", "http://localhost:5000"],
+//   origin: [
+//     "https://full-stack-project-mani.vercel.app",
+//     "https://full-stack-project-rho.vercel.app",
+//     "http://localhost:5000"
+//   ],
 //   methods: ["GET", "POST", "PUT", "DELETE"],
 //   credentials: true
 // }));
 
-// // ✅ Handle Preflight Requests
 // app.options("*", cors());
 
-// // ✅ Set Security Headers (Fix for COOP issue)
+// // ✅ Security Headers
 // app.use((req, res, next) => {
 //   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
 //   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
 //   next();
 // });
 
-// app.use(express.json());
-
-// // ✅ Connect Database
-// connectDB();
-
 // // ✅ Define Routes
 // app.use("/api/users", userRoutes);
 // app.use("/api/profile", profileRoutes);
 
-
-// // const express = require("express");
-// const http = require("http");
-// const socketIo = require("socket.io");
-// // const cors = require("cors");
-
-// // const app = express();
-// app.use(cors());
-
-// const server = http.createServer(app);
-// const io = socketIo(server, {
-//   cors: { origin: "*" },
-// });
-
 // let liveStreams = [];
 
+// // ✅ SINGLE Socket.io Connection Handling
 // io.on("connection", (socket) => {
-//   console.log("New user connected");
+//   console.log(`New user connected: ${socket.id}`);
 
+//   // 🔹 Handle WebRTC Signaling
 //   socket.on("offer", (offer, streamTitle) => {
 //     liveStreams.push({ id: socket.id, streamTitle });
 //     socket.broadcast.emit("offer", offer);
@@ -128,113 +66,68 @@
 
 //   socket.on("stop-stream", () => {
 //     liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
-//     socket.broadcast.emit("stream-stopped", socket.id);
+//     io.emit("stream-stopped", socket.id);
 //   });
 
-//   socket.on("disconnect", () => {
-//     liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
-//     socket.broadcast.emit("stream-stopped", socket.id);
-//   });
-// });
-
-// io.on("connection", (socket) => {
+//   // 🔹 Handle Chat Messaging
 //   socket.on("chat-message", (msg) => {
 //     io.emit("chat-message", msg);
 //   });
+
+//   // 🔹 Handle Disconnection & Cleanup
+//   socket.on("disconnect", () => {
+//     liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
+//     io.emit("stream-stopped", socket.id);
+//     console.log(`User disconnected: ${socket.id}`);
+//   });
 // });
 
-
-// // server.listen(5000, () => console.log("Server running on port 5000"));
-
-
-
 // const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import { createServer } from "http";  // ✅ Import HTTP Server
-import { Server } from "socket.io";   // ✅ Import Socket.io
+import { createServer } from "http";
+import { Server } from "socket.io";
 import connectDB from "./Config/Mongoose.js";
-import userRoutes from "./Routes/userRoutes.js";
-import profileRoutes from "./Routes/profileRoutes.js";
 
 dotenv.config();
-
-// ✅ Initialize Express App
 const app = express();
-const server = createServer(app); // ✅ Create HTTP Server
+const server = createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-// ✅ Connect Database
 connectDB();
-
-// ✅ Middleware
 app.use(express.json());
-app.use(cors({
-  origin: [
-    "https://full-stack-project-mani.vercel.app",
-    "https://full-stack-project-rho.vercel.app",
-    "http://localhost:5000"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
-
-app.options("*", cors());
-
-// ✅ Security Headers
-app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-  next();
-});
-
-// ✅ Define Routes
-app.use("/api/users", userRoutes);
-app.use("/api/profile", profileRoutes);
+app.use(cors());
 
 let liveStreams = [];
 
-// ✅ SINGLE Socket.io Connection Handling
 io.on("connection", (socket) => {
-  console.log(`New user connected: ${socket.id}`);
+  console.log(`User connected: ${socket.id}`);
 
-  // 🔹 Handle WebRTC Signaling
   socket.on("offer", (offer, streamTitle) => {
     liveStreams.push({ id: socket.id, streamTitle });
     socket.broadcast.emit("offer", offer);
-  });
-
-  socket.on("answer", (answer) => {
-    socket.broadcast.emit("answer", answer);
-  });
-
-  socket.on("candidate", (candidate) => {
-    socket.broadcast.emit("candidate", candidate);
+    io.emit("update-streams", liveStreams);
   });
 
   socket.on("stop-stream", () => {
     liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
-    io.emit("stream-stopped", socket.id);
+    io.emit("update-streams", liveStreams);
   });
 
-  // 🔹 Handle Chat Messaging
   socket.on("chat-message", (msg) => {
     io.emit("chat-message", msg);
   });
 
-  // 🔹 Handle Disconnection & Cleanup
   socket.on("disconnect", () => {
     liveStreams = liveStreams.filter((stream) => stream.id !== socket.id);
-    io.emit("stream-stopped", socket.id);
-    console.log(`User disconnected: ${socket.id}`);
+    io.emit("update-streams", liveStreams);
   });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(5000, () => console.log("🚀 Server running on port 5000"));

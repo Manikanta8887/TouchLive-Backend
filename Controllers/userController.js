@@ -1,22 +1,55 @@
-import  User from '../Models/user.js'
+// import  User from '../Models/user.js'
 
-const saveUser = async (req, res) => {
+// const saveUser = async (req, res) => {
+//   try {
+//     console.log("Received user data:", req.body);
+//     const { uid, name, email, profilePic } = req.body;
+
+//     let user = await User.findOne({ uid });
+//     if (!user) {
+//       user = new User({ uid, name, email, profilePic });
+//       await user.save();
+//       return res.status(201).json({ message: "User stored successfully!" });
+//     }
+//     res.status(200).json({ message: "User already exists!" });
+//   } catch (error) {
+//     console.error("Error Saving User:", error);
+//     res.status(500).json({ error: "Server Error: Unable to save user", details: error.message });
+//   }
+// };
+
+// export default saveUser
+
+import User from "../Models/user.js";
+
+// Save or check user existence (Signup/Login)
+export const saveUser = async (req, res) => {
   try {
     console.log("Received user data:", req.body);
     const { uid, name, email, profilePic } = req.body;
 
     let user = await User.findOne({ uid });
+
     if (!user) {
       user = new User({ uid, name, email, profilePic });
       await user.save();
-      return res.status(201).json({ message: "User stored successfully!" });
+      return res.status(201).json({ message: "User stored successfully!", user });
     }
-    res.status(200).json({ message: "User already exists!" });
+
+    res.status(200).json({ message: "User already exists!", user });
   } catch (error) {
     console.error("Error Saving User:", error);
     res.status(500).json({ error: "Server Error: Unable to save user", details: error.message });
   }
 };
 
-export default saveUser
-
+// Get all users (Future use: Displaying online users)
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "uid name profilePic"); // Fetch only necessary fields
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Server error while fetching users" });
+  }
+};

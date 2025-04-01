@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const StreamSchema = new mongoose.Schema({
-  streamerId: { type: String, required: true }, // UID of the streamer
+  streamerId: { type: String, required: true }, 
   streamTitle: { type: String, required: true },
   startTime: { type: Date, required: true },
   endTime: { type: Date },

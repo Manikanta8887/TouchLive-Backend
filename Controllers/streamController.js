@@ -1,28 +1,3 @@
-// let liveStreams = {}; // This should match the `server.js` liveStreams object
-
-// // Get all active streams
-// export const getActiveStreams = (req, res) => {
-//   try {
-//     res.json(Object.values(liveStreams));
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error retrieving streams" });
-//   }
-// };
-
-// // Get chat messages for a specific stream
-// export const getStreamChat = (req, res) => {
-//   try {
-//     const streamId = req.params.streamId;
-//     if (!liveStreams[streamId]) {
-//       return res.status(404).json({ message: "Stream not found" });
-//     }
-//     res.json(liveStreams[streamId].chatMessages);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error retrieving chat messages" });
-//   }
-// };
-
-
 import Stream from "../Models/Stream.js";
 
 // Get all active live streams (ongoing streams)

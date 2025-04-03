@@ -130,9 +130,17 @@ app.use("/api/streams", streamRoutes);
 
 let liveStreams = {};
 
-// Socket.io Connection for Live Streaming & Chat
+// Socket.io Connection for Live Streaming, WebRTC Signaling, & Chat
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
+
+  // When a client requests the current stream list:
+  socket.on("get-streams", () => {
+    socket.emit("stream-list", {
+      liveStreams: Object.values(liveStreams),
+      pastStreams: [], // Past streams can be fetched via REST API endpoints if needed
+    });
+  });
 
   // When a stream starts, register it with stream details.
   socket.on("start-stream", ({ streamTitle, streamerId }) => {
@@ -140,11 +148,23 @@ io.on("connection", (socket) => {
       id: socket.id,
       streamerId: streamerId || socket.id,
       streamTitle,
+      streamLink: `/livestreamingplatform/stream/${socket.id}`, // Useful for redirection
       chatMessages: [],
       startTime: new Date(),
-      isFullscreen: false, // for fullscreen toggle
+      isFullscreen: false, // For fullscreen toggle
     };
     io.emit("update-streams", Object.values(liveStreams));
+  });
+
+  // WebRTC Signaling Events (offer, answer, ICE candidates)
+  socket.on("offer", (offerData) => {
+    socket.broadcast.emit("offer", offerData);
+  });
+  socket.on("answer", (answerData) => {
+    socket.broadcast.emit("answer", answerData);
+  });
+  socket.on("ice-candidate", (candidateData) => {
+    socket.broadcast.emit("ice-candidate", candidateData);
   });
 
   // Toggle fullscreen mode for a specific stream (if needed)
@@ -156,7 +176,7 @@ io.on("connection", (socket) => {
   });
 
   // When a chat message is sent, expect a full chat object.
-  // The chatData object should include: streamId, sender (username), message, etc.
+  // The chatData object should include: streamId, username, message, etc.
   socket.on("chat-message", (chatData) => {
     // Use the streamId from the chatData to update the correct stream's chat.
     if (liveStreams[chatData.streamId]) {
@@ -169,7 +189,7 @@ io.on("connection", (socket) => {
     io.emit("chat-message", chatData);
   });
 
-  // When a stream stops, save it as an ended stream.
+  // When a stream stops, save the finished stream and remove it from active streams.
   socket.on("stop-stream", () => {
     if (liveStreams[socket.id]) {
       saveEndedStream(liveStreams[socket.id]);
@@ -178,7 +198,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // On disconnect, treat it as stream end if active.
+  // Handle disconnect: if a streamer disconnects, treat it as a stream end.
   socket.on("disconnect", () => {
     if (liveStreams[socket.id]) {
       saveEndedStream(liveStreams[socket.id]);

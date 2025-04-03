@@ -22,12 +22,23 @@ export const saveUser = async (req, res) => {
 };
 
 
+// export const getAllUsers = async (req, res) => {
+//   try {
+//     const users = await User.find({}, "uid name profilePic"); 
+//     res.status(200).json(users);
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     res.status(500).json({ message: "Server error while fetching users" });
+//   }
+// };
+
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, "uid name profilePic"); 
+    const users = await User.find({}, "uid name profilePic email"); // Include email
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ message: "Server error while fetching users" });
   }
 };
+

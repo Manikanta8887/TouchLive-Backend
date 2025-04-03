@@ -134,18 +134,7 @@ let liveStreams = {};
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // // When a stream starts, register it along with the streamer info.
-  // socket.on("start-stream", ({ streamTitle, streamerId }) => {
-  //   liveStreams[socket.id] = {
-  //     id: socket.id,
-  //     streamerId: streamerId || socket.id,
-  //     streamTitle,
-  //     chatMessages: [],
-  //     startTime: new Date(),
-  //   };
-  //   io.emit("update-streams", Object.values(liveStreams));
-  // });
-
+  // When a stream starts, register it with stream details.
   socket.on("start-stream", ({ streamTitle, streamerId }) => {
     liveStreams[socket.id] = {
       id: socket.id,
@@ -153,45 +142,34 @@ io.on("connection", (socket) => {
       streamTitle,
       chatMessages: [],
       startTime: new Date(),
-      isFullscreen: false, // New property for fullscreen toggle
+      isFullscreen: false, // for fullscreen toggle
     };
     io.emit("update-streams", Object.values(liveStreams));
   });
-  
-  // Toggle Fullscreen Mode
+
+  // Toggle fullscreen mode for a specific stream (if needed)
   socket.on("toggle-fullscreen", ({ streamId, isFullscreen }) => {
     if (liveStreams[streamId]) {
       liveStreams[streamId].isFullscreen = isFullscreen;
       io.emit("update-streams", Object.values(liveStreams));
     }
   });
-  
 
-  // When a chat message is sent, expect a full chat object from the client.
-  // socket.on("chat-message", (chatData) => {
-  //   // Append timestamp to the chat message and store it in the active stream.
-  //   if (liveStreams[socket.id]) {
-  //     liveStreams[socket.id].chatMessages.push({
-  //       ...chatData,
-  //       timestamp: new Date(),
-  //     });
-  //   }
-  //   // Broadcast the full chatData object to all clients.
-  //   io.emit("chat-message", chatData);
-  // });
+  // When a chat message is sent, expect a full chat object.
+  // The chatData object should include: streamId, sender (username), message, etc.
   socket.on("chat-message", (chatData) => {
+    // Use the streamId from the chatData to update the correct stream's chat.
     if (liveStreams[chatData.streamId]) {
       liveStreams[chatData.streamId].chatMessages.push({
-        sender: chatData.sender, // Ensure sender is stored properly
+        sender: chatData.username,
         message: chatData.message,
         timestamp: new Date(),
       });
     }
     io.emit("chat-message", chatData);
   });
-  
 
-  // When a stream stops, save the finished stream and remove it from active streams.
+  // When a stream stops, save it as an ended stream.
   socket.on("stop-stream", () => {
     if (liveStreams[socket.id]) {
       saveEndedStream(liveStreams[socket.id]);
@@ -200,7 +178,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle disconnect: if a streamer disconnects, treat it as a stream end.
+  // On disconnect, treat it as stream end if active.
   socket.on("disconnect", () => {
     if (liveStreams[socket.id]) {
       saveEndedStream(liveStreams[socket.id]);

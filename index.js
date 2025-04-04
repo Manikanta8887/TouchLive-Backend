@@ -143,9 +143,22 @@ import { saveEndedStream, getEndedStreams } from "./Controllers/streamController
 dotenv.config();
 const app = express();
 const server = createServer(app);
+// const io = new Server(server, {
+//   cors: { origin: "*", methods: ["GET", "POST"] },
+// });
+
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: {
+    origin: [
+      "https://full-stack-project-mani.vercel.app",
+      "https://full-stack-project-rho.vercel.app/",
+      "http://localhost:5000",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
+
 
 // Connect to MongoDB
 connectDB();
@@ -164,12 +177,15 @@ app.use(
   })
 );
 
+
+
 // API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 
 let liveStreams = {};
+
 
 // Socket.io Connection for Live Streaming, WebRTC Signaling, & Chat
 io.on("connection", (socket) => {

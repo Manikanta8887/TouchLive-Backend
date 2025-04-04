@@ -228,7 +228,8 @@ io.on("connection", (socket) => {
       id: socket.id,
       streamerId: streamerId || socket.id,
       streamTitle,
-      streamLink: `/livestreamingplatform/watch/${socket.id}`, // Updated to use viewer route
+      // Update streamLink to point to the viewer page:
+      streamLink: `/livestreamingplatform/watch/${socket.id}`,
       chatMessages: [],
       startTime: new Date(),
       isFullscreen: false, // For fullscreen toggle
@@ -288,7 +289,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // On disconnect, treat it as a stream end if active.
+  // On disconnect, treat as stream end if active.
   socket.on("disconnect", async () => {
     const endedStream = liveStreams[socket.id];
     if (endedStream) {

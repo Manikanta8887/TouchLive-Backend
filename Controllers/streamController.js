@@ -128,7 +128,7 @@ export const getPastStreams = async (req, res) => {
     const { userId } = req.params;
     const pastStreams = await Stream.find({
       streamerId: userId,
-      endTime: { $ne: null },
+      endTime: { $ne: null }
     }).sort({ endTime: -1 });
     res.json(pastStreams);
   } catch (error) {

@@ -294,13 +294,12 @@ io.on("connection", (socket) => {
   });
 
   // Stop streaming
-  socket.on("stop-stream", async ({ streamerId }) => {
-    const id = streamerId || socket.id;
-    const endedStream = liveStreams[id];
+  socket.on("stop-stream", async () => {
+    const endedStream = liveStreams[socket.id] || liveStreams[firebaseUser?.uid];
     if (endedStream) {
       endedStream.endTime = new Date();
       await saveEndedStream(endedStream);
-      delete liveStreams[id];
+      delete liveStreams[endedStream.streamerId];
       io.emit("update-streams", Object.values(liveStreams));
       io.emit("stop-stream", endedStream);
     }
@@ -308,15 +307,13 @@ io.on("connection", (socket) => {
 
   // Handle disconnect
   socket.on("disconnect", async () => {
-    const streamEntries = Object.entries(liveStreams);
-    for (const [id, stream] of streamEntries) {
-      if (stream.streamerId === socket.id) {
-        stream.endTime = new Date();
-        await saveEndedStream(stream);
-        delete liveStreams[id];
-        io.emit("update-streams", Object.values(liveStreams));
-        io.emit("stop-stream", stream);
-      }
+    const endedStream = liveStreams[socket.id] || liveStreams[firebaseUser?.uid];
+    if (endedStream) {
+      endedStream.endTime = new Date();
+      await saveEndedStream(endedStream);
+      delete liveStreams[endedStream.streamerId];
+      io.emit("update-streams", Object.values(liveStreams));
+      io.emit("stop-stream", endedStream);
     }
     console.log(`❌ Socket disconnected: ${socket.id}`);
   });

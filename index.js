@@ -158,6 +158,179 @@
 
 
 
+// import dotenv from "dotenv";
+// import express from "express";
+// import cors from "cors";
+// import { createServer } from "http";
+// import { Server } from "socket.io";
+// import connectDB from "./Config/Mongoose.js";
+// import userRoutes from "./Routes/userRoutes.js";
+// import profileRoutes from "./Routes/profileRoutes.js";
+// import streamRoutes from "./Routes/streamRoutes.js";
+// import { saveEndedStream, getEndedStreams } from "./Controllers/streamController.js";
+
+// dotenv.config();
+// const app = express();
+// const server = createServer(app);
+
+// const io = new Server(server, {
+//   cors: {
+//     origin: [
+//       "https://full-stack-project-mani.vercel.app",
+//       "https://full-stack-project-rho.vercel.app/",
+//       "http://localhost:5000",
+//     ],
+//     methods: ["GET", "POST"],
+//     credentials: true,
+//   },
+// });
+
+// // Connect to MongoDB
+// connectDB();
+
+// app.use(express.json());
+// app.use(
+//   cors({
+//     origin: [
+//       "https://full-stack-project-mani.vercel.app",
+//       "https://full-stack-project-rho.vercel.app/",
+//       "http://localhost:5000",
+//     ],
+//     credentials: true,
+//     methods: "GET, POST, PUT, DELETE",
+//     allowedHeaders: "Content-Type, Authorization",
+//   })
+// );
+
+// // API Routes
+// app.use("/api/users", userRoutes);
+// app.use("/api/profile", profileRoutes);
+// app.use("/api/streams", streamRoutes);
+
+// let liveStreams = {}; // Keyed by streamerId
+
+// io.on("connection", (socket) => {
+//   console.log(`✅ Socket connected: ${socket.id}`);
+
+//   // Client requests list of streams
+//   socket.on("get-streams", async () => {
+//     const pastStreams = await getEndedStreams();
+//     socket.emit("stream-list", {
+//       liveStreams: Object.values(liveStreams),
+//       pastStreams,
+//     });
+//   });
+
+//   // Client requests details for one stream
+//   socket.on("get-stream-info", ({ streamId }) => {
+//     socket.emit("stream-info", liveStreams[streamId] || null);
+//   });
+
+//   // Viewer joins a stream room
+//   socket.on("join-stream", ({ streamId }) => {
+//     socket.join(streamId);
+//   });
+
+//   // Streamer starts streaming
+//   socket.on("start-stream", ({ streamTitle, streamerId, streamerName, profilePic }) => {
+//     const id = streamerId || socket.id;
+
+//     const newStream = {
+//       id,
+//       streamerId: id,
+//       streamerName,
+//       profilePic,
+//       streamTitle,
+//       streamLink: `/livestreamingplatform/watch/${id}`,
+//       chatMessages: [],
+//       startTime: new Date(),
+//       isFullscreen: false,
+//     };
+
+//     liveStreams[id] = newStream;
+//     socket.data.streamerId = id; // Save streamerId inside the socket's memory
+//     socket.join(id);
+
+//     io.emit("update-streams", Object.values(liveStreams));
+//     socket.emit("start-stream", newStream);
+//   });
+
+//   // WebRTC signaling
+//   socket.on("offer", ({ streamId, offer }) => {
+//     socket.to(streamId).emit("offer", { offer });
+//   });
+
+//   socket.on("answer", ({ streamId, answer }) => {
+//     socket.to(streamId).emit("answer", { answer });
+//   });
+
+//   socket.on("ice-candidate", ({ streamId, candidate }) => {
+//     socket.to(streamId).emit("ice-candidate", { candidate });
+//   });
+
+//   // Chat within a stream room
+//   socket.on("chat-message", (chatData) => {
+//     const { streamId } = chatData;
+//     if (liveStreams[streamId]) {
+//       liveStreams[streamId].chatMessages.push({
+//         sender: chatData.username,
+//         message: chatData.message,
+//         timestamp: new Date(),
+//       });
+//       io.to(streamId).emit("chat-message", chatData);
+//     }
+//   });
+
+//   // Fullscreen toggle broadcast
+//   socket.on("toggle-fullscreen", ({ streamId, isFullscreen }) => {
+//     if (liveStreams[streamId]) {
+//       liveStreams[streamId].isFullscreen = isFullscreen;
+//       io.emit("update-streams", Object.values(liveStreams));
+//     }
+//   });
+
+//   // Streamer rejoin (on tab switch or reload)
+//   socket.on("rejoin-stream", ({ streamerId }) => {
+//     const stream = liveStreams[streamerId];
+//     if (stream) {
+//       socket.join(streamerId);
+//       socket.emit("stream-info", stream);
+//     }
+//   });
+
+//   // Stop streaming manually
+//   socket.on("stop-stream", async () => {
+//     const streamerId = socket.data.streamerId;
+//     if (streamerId && liveStreams[streamerId]) {
+//       const endedStream = liveStreams[streamerId];
+//       endedStream.endTime = new Date();
+//       await saveEndedStream(endedStream);
+
+//       delete liveStreams[streamerId];
+//       io.emit("update-streams", Object.values(liveStreams));
+//       io.emit("stop-stream", endedStream);
+//     }
+//   });
+
+//   // Handle disconnect
+//   socket.on("disconnect", async () => {
+//     const streamerId = socket.data.streamerId;
+//     if (streamerId && liveStreams[streamerId]) {
+//       const endedStream = liveStreams[streamerId];
+//       endedStream.endTime = new Date();
+//       await saveEndedStream(endedStream);
+
+//       delete liveStreams[streamerId];
+//       io.emit("update-streams", Object.values(liveStreams));
+//       io.emit("stop-stream", endedStream);
+//     }
+//     console.log(`❌ Socket disconnected: ${socket.id}`);
+//   });
+// });
+
+// server.listen(5000, () => console.log("🚀 Server running on port 5000"));
+
+
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -169,15 +342,19 @@ import profileRoutes from "./Routes/profileRoutes.js";
 import streamRoutes from "./Routes/streamRoutes.js";
 import { saveEndedStream, getEndedStreams } from "./Controllers/streamController.js";
 
+// Load environment variables
 dotenv.config();
+
+// Initialize app
 const app = express();
 const server = createServer(app);
 
+// Configure Socket.IO
 const io = new Server(server, {
   cors: {
     origin: [
       "https://full-stack-project-mani.vercel.app",
-      "https://full-stack-project-rho.vercel.app/",
+      "https://full-stack-project-rho.vercel.app",
       "http://localhost:5000",
     ],
     methods: ["GET", "POST"],
@@ -188,31 +365,32 @@ const io = new Server(server, {
 // Connect to MongoDB
 connectDB();
 
+// Middleware
 app.use(express.json());
-app.use(
-  cors({
-    origin: [
-      "https://full-stack-project-mani.vercel.app",
-      "https://full-stack-project-rho.vercel.app/",
-      "http://localhost:5000",
-    ],
-    credentials: true,
-    methods: "GET, POST, PUT, DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-  })
-);
+app.use(cors({
+  origin: [
+    "https://full-stack-project-mani.vercel.app",
+    "https://full-stack-project-rho.vercel.app",
+    "http://localhost:5000",
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 // API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 
-let liveStreams = {}; // Keyed by streamerId
+// In-memory storage for live streams
+let liveStreams = {}; // Key: streamerId
 
+// Socket.IO connection
 io.on("connection", (socket) => {
   console.log(`✅ Socket connected: ${socket.id}`);
 
-  // Client requests list of streams
+  // Send available streams
   socket.on("get-streams", async () => {
     const pastStreams = await getEndedStreams();
     socket.emit("stream-list", {
@@ -221,17 +399,17 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Client requests details for one stream
+  // Send specific stream info
   socket.on("get-stream-info", ({ streamId }) => {
     socket.emit("stream-info", liveStreams[streamId] || null);
   });
 
-  // Viewer joins a stream room
+  // Join stream room
   socket.on("join-stream", ({ streamId }) => {
     socket.join(streamId);
   });
 
-  // Streamer starts streaming
+  // Start streaming
   socket.on("start-stream", ({ streamTitle, streamerId, streamerName, profilePic }) => {
     const id = streamerId || socket.id;
 
@@ -248,14 +426,14 @@ io.on("connection", (socket) => {
     };
 
     liveStreams[id] = newStream;
-    socket.data.streamerId = id; // Save streamerId inside the socket's memory
+    socket.data.streamerId = id;
     socket.join(id);
 
     io.emit("update-streams", Object.values(liveStreams));
     socket.emit("start-stream", newStream);
   });
 
-  // WebRTC signaling
+  // WebRTC Signaling
   socket.on("offer", ({ streamId, offer }) => {
     socket.to(streamId).emit("offer", { offer });
   });
@@ -268,20 +446,20 @@ io.on("connection", (socket) => {
     socket.to(streamId).emit("ice-candidate", { candidate });
   });
 
-  // Chat within a stream room
-  socket.on("chat-message", (chatData) => {
-    const { streamId } = chatData;
+  // Handle chat messages
+  socket.on("chat-message", ({ streamId, username, message }) => {
     if (liveStreams[streamId]) {
-      liveStreams[streamId].chatMessages.push({
-        sender: chatData.username,
-        message: chatData.message,
+      const chatEntry = {
+        sender: username,
+        message,
         timestamp: new Date(),
-      });
-      io.to(streamId).emit("chat-message", chatData);
+      };
+      liveStreams[streamId].chatMessages.push(chatEntry);
+      io.to(streamId).emit("chat-message", chatEntry);
     }
   });
 
-  // Fullscreen toggle broadcast
+  // Fullscreen toggle
   socket.on("toggle-fullscreen", ({ streamId, isFullscreen }) => {
     if (liveStreams[streamId]) {
       liveStreams[streamId].isFullscreen = isFullscreen;
@@ -289,7 +467,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Streamer rejoin (on tab switch or reload)
+  // Streamer rejoin
   socket.on("rejoin-stream", ({ streamerId }) => {
     const stream = liveStreams[streamerId];
     if (stream) {
@@ -304,6 +482,7 @@ io.on("connection", (socket) => {
     if (streamerId && liveStreams[streamerId]) {
       const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
+
       await saveEndedStream(endedStream);
 
       delete liveStreams[streamerId];
@@ -318,6 +497,7 @@ io.on("connection", (socket) => {
     if (streamerId && liveStreams[streamerId]) {
       const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
+
       await saveEndedStream(endedStream);
 
       delete liveStreams[streamerId];
@@ -328,4 +508,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(5000, () => console.log("🚀 Server running on port 5000"));
+// Start server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

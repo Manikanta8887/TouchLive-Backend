@@ -158,8 +158,6 @@
 
 
 
-
-
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -174,6 +172,7 @@ import { saveEndedStream, getEndedStreams } from "./Controllers/streamController
 dotenv.config();
 const app = express();
 const server = createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: [
@@ -235,6 +234,7 @@ io.on("connection", (socket) => {
   // Streamer starts streaming
   socket.on("start-stream", ({ streamTitle, streamerId, streamerName, profilePic }) => {
     const id = streamerId || socket.id;
+
     const newStream = {
       id,
       streamerId: id,
@@ -246,8 +246,11 @@ io.on("connection", (socket) => {
       startTime: new Date(),
       isFullscreen: false,
     };
+
     liveStreams[id] = newStream;
-    socket.join(id); // Streamer joins their own room
+    socket.data.streamerId = id; // Save streamerId inside the socket's memory
+    socket.join(id);
+
     io.emit("update-streams", Object.values(liveStreams));
     socket.emit("start-stream", newStream);
   });
@@ -256,9 +259,11 @@ io.on("connection", (socket) => {
   socket.on("offer", ({ streamId, offer }) => {
     socket.to(streamId).emit("offer", { offer });
   });
+
   socket.on("answer", ({ streamId, answer }) => {
     socket.to(streamId).emit("answer", { answer });
   });
+
   socket.on("ice-candidate", ({ streamId, candidate }) => {
     socket.to(streamId).emit("ice-candidate", { candidate });
   });
@@ -293,13 +298,15 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Stop streaming
+  // Stop streaming manually
   socket.on("stop-stream", async () => {
-    const endedStream = liveStreams[socket.id] || liveStreams[firebaseUser?.uid];
-    if (endedStream) {
+    const streamerId = socket.data.streamerId;
+    if (streamerId && liveStreams[streamerId]) {
+      const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
       await saveEndedStream(endedStream);
-      delete liveStreams[endedStream.streamerId];
+
+      delete liveStreams[streamerId];
       io.emit("update-streams", Object.values(liveStreams));
       io.emit("stop-stream", endedStream);
     }
@@ -307,11 +314,13 @@ io.on("connection", (socket) => {
 
   // Handle disconnect
   socket.on("disconnect", async () => {
-    const endedStream = liveStreams[socket.id] || liveStreams[firebaseUser?.uid];
-    if (endedStream) {
+    const streamerId = socket.data.streamerId;
+    if (streamerId && liveStreams[streamerId]) {
+      const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
       await saveEndedStream(endedStream);
-      delete liveStreams[endedStream.streamerId];
+
+      delete liveStreams[streamerId];
       io.emit("update-streams", Object.values(liveStreams));
       io.emit("stop-stream", endedStream);
     }

@@ -331,6 +331,7 @@
 // server.listen(5000, () => console.log("🚀 Server running on port 5000"));
 
 
+// Updated server.js
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -345,11 +346,11 @@ import { saveEndedStream, getEndedStreams } from "./Controllers/streamController
 // Load environment variables
 dotenv.config();
 
-// Initialize app
+// Initialize app and server
 const app = express();
 const server = createServer(app);
 
-// Configure Socket.IO
+// Initialize Socket.IO
 const io = new Server(server, {
   cors: {
     origin: [
@@ -365,32 +366,34 @@ const io = new Server(server, {
 // Connect to MongoDB
 connectDB();
 
-// Middleware
+// Middlewares
 app.use(express.json());
-app.use(cors({
-  origin: [
-    "https://full-stack-project-mani.vercel.app",
-    "https://full-stack-project-rho.vercel.app",
-    "http://localhost:5000",
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: [
+      "https://full-stack-project-mani.vercel.app",
+      "https://full-stack-project-rho.vercel.app",
+      "http://localhost:5000",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 
-// In-memory storage for live streams
-let liveStreams = {}; // Key: streamerId
+// Live Streams Storage
+let liveStreams = {}; // { streamerId: streamData }
 
-// Socket.IO connection
+// Socket.IO Handling
 io.on("connection", (socket) => {
   console.log(`✅ Socket connected: ${socket.id}`);
 
-  // Send available streams
+  // Send live and past streams to client
   socket.on("get-streams", async () => {
     const pastStreams = await getEndedStreams();
     socket.emit("stream-list", {
@@ -404,12 +407,12 @@ io.on("connection", (socket) => {
     socket.emit("stream-info", liveStreams[streamId] || null);
   });
 
-  // Join stream room
+  // Viewer joins stream room
   socket.on("join-stream", ({ streamId }) => {
     socket.join(streamId);
   });
 
-  // Start streaming
+  // Streamer starts streaming
   socket.on("start-stream", ({ streamTitle, streamerId, streamerName, profilePic }) => {
     const id = streamerId || socket.id;
 
@@ -446,16 +449,16 @@ io.on("connection", (socket) => {
     socket.to(streamId).emit("ice-candidate", { candidate });
   });
 
-  // Handle chat messages
+  // Chat functionality
   socket.on("chat-message", ({ streamId, username, message }) => {
     if (liveStreams[streamId]) {
-      const chatEntry = {
+      const chatMessage = {
         sender: username,
         message,
         timestamp: new Date(),
       };
-      liveStreams[streamId].chatMessages.push(chatEntry);
-      io.to(streamId).emit("chat-message", chatEntry);
+      liveStreams[streamId].chatMessages.push(chatMessage);
+      io.to(streamId).emit("chat-message", chatMessage);
     }
   });
 
@@ -482,7 +485,6 @@ io.on("connection", (socket) => {
     if (streamerId && liveStreams[streamerId]) {
       const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
-
       await saveEndedStream(endedStream);
 
       delete liveStreams[streamerId];
@@ -497,7 +499,6 @@ io.on("connection", (socket) => {
     if (streamerId && liveStreams[streamerId]) {
       const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
-
       await saveEndedStream(endedStream);
 
       delete liveStreams[streamerId];
@@ -508,6 +509,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server
+// Start the server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

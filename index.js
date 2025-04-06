@@ -1,3 +1,4 @@
+// // server.js
 // import dotenv from "dotenv";
 // import express from "express";
 // import cors from "cors";
@@ -67,14 +68,26 @@
 //   });
 
 //   // Viewer joins a stream room
+//   // socket.on("join-stream", ({ streamId }) => {
+//   //   socket.join(streamId);
+//   //   // Optionally, store current stream for this socket
+//   //   socket.data.currentStreamId = streamId;
+//   // });
+
 //   socket.on("join-stream", ({ streamId }) => {
 //     socket.join(streamId);
+//     socket.data.currentStreamId = streamId;
+//     // Increment viewer count for the stream
+//     if (liveStreams[streamId]) {
+//       liveStreams[streamId].viewers = (liveStreams[streamId].viewers || 0) + 1;
+//       io.emit("update-streams", Object.values(liveStreams));
+//     }
 //   });
+  
 
 //   // Streamer starts streaming
 //   socket.on("start-stream", ({ streamTitle, streamerId, streamerName, profilePic }) => {
 //     const id = streamerId || socket.id;
-
 //     const newStream = {
 //       id,
 //       streamerId: id,
@@ -86,11 +99,9 @@
 //       startTime: new Date(),
 //       isFullscreen: false,
 //     };
-
 //     liveStreams[id] = newStream;
-//     socket.data.streamerId = id; // Save streamerId inside the socket's memory
+//     socket.data.streamerId = id; // Save streamerId inside socket's data
 //     socket.join(id);
-
 //     io.emit("update-streams", Object.values(liveStreams));
 //     socket.emit("start-stream", newStream);
 //   });
@@ -110,14 +121,20 @@
 
 //   // Chat within a stream room
 //   socket.on("chat-message", (chatData) => {
-//     const { streamId } = chatData;
-//     if (liveStreams[streamId]) {
+//     // If streamId not provided, try to use stored data or the first room (other than socket.id)
+//     let streamId =
+//       chatData.streamId ||
+//       socket.data.currentStreamId ||
+//       Array.from(socket.rooms).find((room) => room !== socket.id);
+
+//     if (streamId && liveStreams[streamId]) {
 //       liveStreams[streamId].chatMessages.push({
 //         sender: chatData.username,
 //         message: chatData.message,
 //         timestamp: new Date(),
 //       });
-//       io.to(streamId).emit("chat-message", chatData);
+//       // Include streamId in the emitted data
+//       io.to(streamId).emit("chat-message", { ...chatData, streamId });
 //     }
 //   });
 
@@ -145,7 +162,6 @@
 //       const endedStream = liveStreams[streamerId];
 //       endedStream.endTime = new Date();
 //       await saveEndedStream(endedStream);
-
 //       delete liveStreams[streamerId];
 //       io.emit("update-streams", Object.values(liveStreams));
 //       io.emit("stop-stream", endedStream);
@@ -159,7 +175,6 @@
 //       const endedStream = liveStreams[streamerId];
 //       endedStream.endTime = new Date();
 //       await saveEndedStream(endedStream);
-
 //       delete liveStreams[streamerId];
 //       io.emit("update-streams", Object.values(liveStreams));
 //       io.emit("stop-stream", endedStream);
@@ -171,8 +186,6 @@
 // server.listen(5000, () => console.log("🚀 Server running on port 5000"));
 
 
-
-// server.js
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -244,8 +257,13 @@ io.on("connection", (socket) => {
   // Viewer joins a stream room
   socket.on("join-stream", ({ streamId }) => {
     socket.join(streamId);
-    // Optionally, store current stream for this socket
     socket.data.currentStreamId = streamId;
+    
+    // Increment viewer count for the stream if it exists
+    if (liveStreams[streamId]) {
+      liveStreams[streamId].viewers = (liveStreams[streamId].viewers || 0) + 1;
+      io.emit("update-streams", Object.values(liveStreams));
+    }
   });
 
   // Streamer starts streaming
@@ -261,6 +279,7 @@ io.on("connection", (socket) => {
       chatMessages: [],
       startTime: new Date(),
       isFullscreen: false,
+      viewers: 0, // Initialize viewers to 0
     };
     liveStreams[id] = newStream;
     socket.data.streamerId = id; // Save streamerId inside socket's data
@@ -284,7 +303,6 @@ io.on("connection", (socket) => {
 
   // Chat within a stream room
   socket.on("chat-message", (chatData) => {
-    // If streamId not provided, try to use stored data or the first room (other than socket.id)
     let streamId =
       chatData.streamId ||
       socket.data.currentStreamId ||
@@ -296,7 +314,6 @@ io.on("connection", (socket) => {
         message: chatData.message,
         timestamp: new Date(),
       });
-      // Include streamId in the emitted data
       io.to(streamId).emit("chat-message", { ...chatData, streamId });
     }
   });
@@ -333,6 +350,14 @@ io.on("connection", (socket) => {
 
   // Handle disconnect
   socket.on("disconnect", async () => {
+    // Decrement viewer count if the socket was in a stream room
+    const currentStreamId = socket.data.currentStreamId;
+    if (currentStreamId && liveStreams[currentStreamId]) {
+      liveStreams[currentStreamId].viewers = Math.max((liveStreams[currentStreamId].viewers || 1) - 1, 0);
+      io.emit("update-streams", Object.values(liveStreams));
+    }
+
+    // Existing disconnect handling for streamers
     const streamerId = socket.data.streamerId;
     if (streamerId && liveStreams[streamerId]) {
       const endedStream = liveStreams[streamerId];

@@ -345,6 +345,7 @@ io.on("connection", (socket) => {
       socket.emit("stream-info", stream);
     }
   });
+  
 
   // Stop streaming manually
   socket.on("stop-stream", async () => {

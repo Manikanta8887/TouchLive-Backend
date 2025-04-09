@@ -402,6 +402,8 @@ io.on("connection", (socket) => {
           delete streamerSocketMap[streamerId];
           io.emit("update-streams", Object.values(liveStreams));
           io.emit("stop-stream", endedStream);
+
+          io.to(streamerId).emit("stream-ended");
         }
       }, 5000);
     }

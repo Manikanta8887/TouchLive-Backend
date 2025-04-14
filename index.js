@@ -17,7 +17,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "https://full-stack-project-mani.vercel.app",
-      "https://full-stack-project-rho.vercel.app/",
+      "https://full-stack-project-rho.vercel.app",
       "http://localhost:5000",
     ],
     methods: ["GET", "POST"],

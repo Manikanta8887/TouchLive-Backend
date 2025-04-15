@@ -395,7 +395,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle disconnect events
   socket.on("disconnect", async () => {
     // If a viewer disconnects, update viewer count
     const currentStreamId = socket.data.currentStreamId;

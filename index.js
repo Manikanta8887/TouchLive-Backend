@@ -275,16 +275,31 @@ io.on("connection", (socket) => {
   socket.on("join-stream", ({ streamId }) => {
     socket.join(streamId);
     socket.data.currentStreamId = streamId;
+
     if (liveStreams[streamId]) {
       liveStreams[streamId].viewers = (liveStreams[streamId].viewers || 0) + 1;
+
+      // Broadcast to all in the stream room
+      io.to(streamId).emit("viewer-count", {
+        streamId,
+        count: liveStreams[streamId].viewers,
+      });
+
       io.emit("update-streams", Object.values(liveStreams));
-      const streamerSocketId = streamerSocketMap[streamId];
-      if (streamerSocketId) {
-        io.to(streamerSocketId).emit("viewer-count", {
-          streamId,
-          count: liveStreams[streamId].viewers,
-        });
-      }
+    }
+  });
+
+  socket.on("leave-stream", ({ streamId }) => {
+    socket.leave(streamId);
+    if (liveStreams[streamId]) {
+      liveStreams[streamId].viewers = Math.max((liveStreams[streamId].viewers || 1) - 1, 0);
+
+      io.to(streamId).emit("viewer-count", {
+        streamId,
+        count: liveStreams[streamId].viewers,
+      });
+
+      io.emit("update-streams", Object.values(liveStreams));
     }
   });
 
@@ -371,15 +386,15 @@ io.on("connection", (socket) => {
     const currentStreamId = socket.data.currentStreamId;
     if (currentStreamId && liveStreams[currentStreamId]) {
       liveStreams[currentStreamId].viewers = Math.max((liveStreams[currentStreamId].viewers || 1) - 1, 0);
+
+      io.to(currentStreamId).emit("viewer-count", {
+        streamId: currentStreamId,
+        count: liveStreams[currentStreamId].viewers,
+      });
+
       io.emit("update-streams", Object.values(liveStreams));
-      const streamerSocketId = streamerSocketMap[currentStreamId];
-      if (streamerSocketId) {
-        io.to(streamerSocketId).emit("viewer-count", {
-          streamId: currentStreamId,
-          count: liveStreams[currentStreamId].viewers,
-        });
-      }
     }
+
     const streamerId = socket.data.streamerId;
     if (streamerId && liveStreams[streamerId]) {
       setTimeout(async () => {
@@ -398,6 +413,7 @@ io.on("connection", (socket) => {
         }
       }, 5000);
     }
+
     console.log(`❌ Socket disconnected: ${socket.id}`);
   });
 });

@@ -221,6 +221,13 @@ import { saveEndedStream, getEndedStreams } from "./Controllers/streamController
 
 dotenv.config();
 const app = express();
+
+// --- Add Cross-Origin-Opener-Policy header middleware ---
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  next();
+});
+
 const server = createServer(app);
 
 const io = new Server(server, {
@@ -296,7 +303,7 @@ io.on("connection", (socket) => {
       }
     }
   });
-  
+
   // Optional: When a viewer leaves (if you implement an explicit leave mechanism)
   socket.on("leave-stream", ({ streamId }) => {
     socket.leave(streamId);
@@ -395,6 +402,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Handle disconnect events
   socket.on("disconnect", async () => {
     // If a viewer disconnects, update viewer count
     const currentStreamId = socket.data.currentStreamId;

@@ -222,7 +222,7 @@ import { saveEndedStream, getEndedStreams } from "./Controllers/streamController
 dotenv.config();
 const app = express();
 
-// --- Add Cross-Origin-Opener-Policy header middleware ---
+// --- COOP Header Middleware to address "window.closed" warnings ---
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   next();

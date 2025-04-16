@@ -207,6 +207,7 @@
 // server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 
+// server.js
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
@@ -295,7 +296,6 @@ io.on("connection", (socket) => {
     socket.leave(streamId);
     if (liveStreams[streamId]) {
       liveStreams[streamId].viewers = Math.max((liveStreams[streamId].viewers || 1) - 1, 0);
-
       io.to(streamId).emit("viewer-count", {
         streamId,
         count: liveStreams[streamId].viewers,
@@ -326,17 +326,24 @@ io.on("connection", (socket) => {
     socket.emit("start-stream", newStream);
   });
 
-  socket.on("offer", ({ streamId, targetSocketId, offer }) => {
-    io.to(targetSocketId).emit("offer", { offer, from: socket.id });
+  // --- Updated Signaling Events (Option B) ---
+
+  socket.on("offer", ({ streamId, offer }) => {
+    // Broadcast offer to everyone in the room except the sender.
+    socket.to(streamId).emit("offer", { offer, from: socket.id });
   });
 
-  socket.on("answer", ({ streamId, targetSocketId, answer }) => {
-    io.to(targetSocketId).emit("answer", { answer, from: socket.id });
+  socket.on("answer", ({ streamId, answer }) => {
+    // Broadcast answer to everyone in the room except the sender.
+    socket.to(streamId).emit("answer", { answer, from: socket.id });
   });
 
-  socket.on("ice-candidate", ({ streamId, targetSocketId, candidate }) => {
-    io.to(targetSocketId).emit("ice-candidate", { candidate, from: socket.id });
+  socket.on("ice-candidate", ({ streamId, candidate }) => {
+    // Broadcast ICE candidate to everyone in the room.
+    socket.to(streamId).emit("ice-candidate", { candidate, from: socket.id });
   });
+
+  // --- End of Updated Signaling Events ---
 
   socket.on("chat-message", (chatData) => {
     const streamId = chatData.streamId || socket.data.currentStreamId;

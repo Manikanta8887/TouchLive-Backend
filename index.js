@@ -155,14 +155,13 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("rejoin-stream", ({ streamerId }) => {
-    const stream = liveStreams[streamerId];
-    if (stream) {
-      socket.join(streamerId);
-      socket.data.streamerId = streamerId;
-      streamerSocketMap[streamerId] = socket.id;
+  socket.on("rejoin-stream", ({ streamId }) => {
+    const stream = liveStreams[streamId];
+    if (!stream) return
+      socket.join(streamId);
+      socket.data.streamerId = streamId;
+      streamerSocketMap[streamId] = socket.id;
       socket.emit("stream-info", stream);
-    }
   });
 
   socket.on("stop-stream", async () => {

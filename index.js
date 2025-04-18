@@ -8,6 +8,7 @@ import userRoutes from "./Routes/userRoutes.js";
 import profileRoutes from "./Routes/profileRoutes.js";
 import streamRoutes from "./Routes/streamRoutes.js";
 import { saveEndedStream, getEndedStreams } from "./Controllers/streamController.js";
+import videoRoutes   from "./Routes/videoRoutes.js";
 
 const app = express();
 const server = createServer(app);
@@ -45,6 +46,7 @@ app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
+app.use("/api/videos", videoRoutes);
 
 let liveStreams = {};
 let streamerSocketMap = {};

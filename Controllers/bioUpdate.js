@@ -10,8 +10,8 @@ const updateUserProfile = async (req, res) => {
       { bio, ...(profilePic && { profilePic }) },
       { new: true }
     );
-
-    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+    if (!updatedUser)
+      return res.status(404).json({ message: "User not found" });
 
     res.json({ message: "Profile updated successfully", updatedUser });
   } catch (error) {

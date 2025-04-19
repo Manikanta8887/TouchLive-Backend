@@ -1,12 +1,10 @@
 import User from "../Models/user.js";
 
-// POST /api/upload-video/:uid
 export const uploadVideo = async (req, res) => {
   const { uid } = req.params;
   if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
 
   try {
-    // lookup by `uid` field (not firebaseUID)
     const user = await User.findOne({ uid });
     if (!user) return res.status(404).json({ msg: "User not found" });
 
@@ -16,7 +14,6 @@ export const uploadVideo = async (req, res) => {
       coverImage:  req.file.path + "#poster",
       sizeInBytes: req.file.size,
     });
-
     await user.save();
     res.json({ video: user.videos.at(-1) });
   } catch (err) {
@@ -25,7 +22,6 @@ export const uploadVideo = async (req, res) => {
   }
 };
 
-// GET /api/videos/:uid
 export const getUserVideos = async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid });
@@ -36,7 +32,6 @@ export const getUserVideos = async (req, res) => {
   }
 };
 
-// GET /api/videos
 export const getAllVideos = async (_req, res) => {
   try {
     const users = await User.find({}, "name videos");

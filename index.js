@@ -48,6 +48,18 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 app.use("/api/videos", videoRoutes);
 
+app.post(
+  "/api/upload-video/:uid",
+  upload.single("video"),
+  uploadVideo
+);
+
+app.put(
+  "/api/users/:uid",
+  updateUserProfile
+);
+
+
 let liveStreams = {};
 let streamerSocketMap = {};
 

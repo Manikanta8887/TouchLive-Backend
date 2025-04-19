@@ -8,12 +8,13 @@ export const uploadVideo = async (req, res) => {
     const user = await User.findOne({ uid });
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    user.videos.push({
-      url:         req.file.path,
-      public_id:   req.file.filename,
-      coverImage:  req.file.path + "#poster",
-      sizeInBytes: req.file.size,
-    });
+        user.videos.push({
+            url:         req.file.path,          // secure Cloudinary video URL
+            public_id:   req.file.filename,      // Cloudinary public_id
+            coverImage:  req.file.path,          // using same URL as placeholder
+            sizeInBytes: req.file.size,
+          });
+      
     await user.save();
     res.json({ video: user.videos.at(-1) });
   } catch (err) {

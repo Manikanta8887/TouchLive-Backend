@@ -9,20 +9,17 @@ import {
 
 const router = express.Router();
 
-// Frontend’s existing action: <Upload action="/api/upload-video/:uid">
-router.post(
-  "/upload-video/:uid",
-  upload.single("video"),
-  uploadVideo
-);
-
-// RESTful under /api/videos
+// POST /api/videos/upload/:uid
 router.post(
   "/upload/:uid",
   upload.single("video"),
   uploadVideo
 );
+
+// GET /api/videos/:uid
 router.get("/:uid", getUserVideos);
+
+// GET /api/videos
 router.get("/", getAllVideos);
 
 export default router;

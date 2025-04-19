@@ -9,8 +9,8 @@ import profileRoutes from "./Routes/profileRoutes.js";
 import streamRoutes from "./Routes/streamRoutes.js";
 import { saveEndedStream, getEndedStreams } from "./Controllers/streamController.js";
 import videoRoutes   from "./Routes/videoRoutes.js";
-import upload from "./middleware/upload.js";
-import { uploadVideo } from "./Controllers/videoController.js";
+// import upload from "./middleware/upload.js";
+// import { uploadVideo } from "./Controllers/videoController.js";
 import updateUserProfile from "./Controllers/bioUpdate.js";
 
 const app = express();
@@ -26,6 +26,8 @@ const ALLOWED_ORIGINS = [
   "http://localhost:3000",
 ];
 
+
+
 // ✅ Optional COOP/COEP Headers
 if (ENABLE_COOP) {
   app.use((req, res, next) => {
@@ -38,14 +40,14 @@ if (ENABLE_COOP) {
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST","PUT"],
     credentials: true,
   },
 });
 
 connectDB();
 app.use(express.json());
-app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
+app.use(cors({ origin: ALLOWED_ORIGINS, methods: ["GET", "POST", "PUT"], credentials: true }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
@@ -53,11 +55,7 @@ app.use("/api/streams", streamRoutes);
 app.use("/api/videos", videoRoutes);
 
 
-app.put(
-  "/api/users/:uid",
-  updateUserProfile
-);
-
+app.put("/api/users/:uid", updateUserProfile);
 
 let liveStreams = {};
 let streamerSocketMap = {};

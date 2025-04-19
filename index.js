@@ -9,6 +9,10 @@ import profileRoutes from "./Routes/profileRoutes.js";
 import streamRoutes from "./Routes/streamRoutes.js";
 import { saveEndedStream, getEndedStreams } from "./Controllers/streamController.js";
 import videoRoutes   from "./Routes/videoRoutes.js";
+import upload from "./middleware/upload.js";
+import { uploadVideo } from "./Controllers/videoController.js";
+import updateUserProfile from "./Controllers/bioUpdate.js";
+
 
 const app = express();
 const server = createServer(app);

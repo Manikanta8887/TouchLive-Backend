@@ -13,7 +13,6 @@ import upload from "./middleware/upload.js";
 import { uploadVideo } from "./Controllers/videoController.js";
 import updateUserProfile from "./Controllers/bioUpdate.js";
 
-
 const app = express();
 const server = createServer(app);
 

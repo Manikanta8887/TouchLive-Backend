@@ -24,6 +24,7 @@ const ALLOWED_ORIGINS = [
   "https://full-stack-project-mani.vercel.app",
   "https://full-stack-project-rho.vercel.app",
   "http://localhost:5000",
+  "http://localhost:3000",
 ];
 
 // ✅ Optional COOP/COEP Headers

@@ -53,6 +53,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 app.use("/api/videos", videoRoutes);
+app.use("/api", videoRoutes);
 
 
 app.put("/api/users/:uid", updateUserProfile);

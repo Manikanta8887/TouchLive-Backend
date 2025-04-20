@@ -51,3 +51,27 @@ export const getAllVideos = async (_req, res) => {
     return res.status(500).json({ msg: "Error fetching all videos", error: err.message });
   }
 };
+
+export const deleteVideo = async (req, res) => {
+  const { public_id } = req.params;
+
+  try {
+    // 1) Delete from Cloudinary
+    await cloudinary.uploader.destroy(public_id, { resource_type: "video" });
+
+    // 2) Delete from MongoDB (embedded or separate - update if needed)
+    const result = await VideoModel.findOneAndUpdate(
+      { "videos.public_id": public_id },
+      { $pull: { videos: { public_id } } }
+    );
+
+    if (!result) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    return res.status(200).json({ success: true, message: "Video deleted successfully." });
+  } catch (err) {
+    console.error("Delete video error:", err);
+    return res.status(500).json({ error: "Failed to delete video." });
+  }
+};

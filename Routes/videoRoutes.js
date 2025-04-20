@@ -5,6 +5,7 @@ import {
   uploadVideo,
   getUserVideos,
   getAllVideos,
+  deleteVideo,
 } from "../Controllers/videoController.js";
 
 const router = express.Router();
@@ -21,5 +22,7 @@ router.get("/:uid", getUserVideos);
 
 // GET /api/videos
 router.get("/", getAllVideos);
+
+router.delete("/videos/:public_id", deleteVideo);
 
 export default router;

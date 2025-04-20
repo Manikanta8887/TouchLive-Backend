@@ -1,5 +1,7 @@
 // Controllers/videoController.js
 import User from "../Models/user.js";
+import cloudinary from "../utils/Cloudinary.js";
+
 
 // export const uploadVideo = async (req, res) => {
 //   const { uid } = req.params;

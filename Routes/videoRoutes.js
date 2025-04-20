@@ -8,6 +8,7 @@ import {
   deleteVideo,
 } from "../Controllers/videoController.js";
 
+
 const router = express.Router();
 
 // POST /api/videos/upload/:uid
@@ -23,6 +24,6 @@ router.get("/:uid", getUserVideos);
 // GET /api/videos
 router.get("/", getAllVideos);
 
-router.delete("/videos/:public_id", deleteVideo);
+router.delete("/:public_id", deleteVideo);
 
 export default router;

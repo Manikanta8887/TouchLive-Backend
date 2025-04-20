@@ -16,28 +16,16 @@
 // Models/user.js
 import mongoose from "mongoose";
 
+// 
 const videoSchema = new mongoose.Schema({
-  url: {
-    type: String,
-    required: true
-  },
-  public_id: {
-    type: String,
-    required: true
-  },
-  coverImage: {
-    type: String,
-    required: true
-  },
-  sizeInBytes: {
-    type: Number,
-    required: true
-  },
-  uploadedAt: {
-    type: Date,
-    default: Date.now
-  }
+  url:         { type: String, required: true },
+  public_id:   { type: String, required: true },
+  coverImage:  { type: String, required: true },
+  sizeInBytes: { type: Number, required: true },
+  title:       { type: String, default: "Untitled Video" },   // ← add this
+  uploadedAt:  { type: Date,   default: Date.now }
 });
+
 
 const UserSchema = new mongoose.Schema(
   {

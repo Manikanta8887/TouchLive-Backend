@@ -40,20 +40,20 @@ if (ENABLE_COOP) {
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST","PUT"],
+    methods: ["GET", "POST","DELETE", "PUT"],
     credentials: true,
   },
 });
 
 connectDB();
 app.use(express.json());
-app.use(cors({ origin: ALLOWED_ORIGINS, methods: ["GET", "POST", "PUT"], credentials: true }));
+app.use(cors({ origin: ALLOWED_ORIGINS, methods: ["GET", "POST", "DELETE", "PUT"], credentials: true }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 app.use("/api/videos", videoRoutes);
-app.use("/api", videoRoutes);
+// app.use("/api", videoRoutes);
 
 
 app.put("/api/users/:uid", updateUserProfile);

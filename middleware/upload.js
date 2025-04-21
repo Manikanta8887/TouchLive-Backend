@@ -22,7 +22,7 @@ const upload = multer({
     }
     cb(null, true);
   },
-  limits: { fileSize: 1 * 1024 * 1024 * 1024 }, // 1 GB max per file
+  limits: { fileSize: 1 * 1024 * 1024 * 1024 },
 });
 
 export default upload;

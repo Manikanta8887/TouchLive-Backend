@@ -203,8 +203,8 @@ io.on("connection", (socket) => {
       }, 5000);
     }
 
-    console.log(`❌ Socket disconnected: ${socket.id}`);
+    console.log(` Socket disconnected: ${socket.id}`);
   });
 });
 
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(` Server running on port ${PORT}`));

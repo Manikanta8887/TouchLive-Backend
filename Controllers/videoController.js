@@ -1,33 +1,6 @@
-// Controllers/videoController.js
 import User from "../Models/user.js";
 import cloudinary from "../utils/Cloudinary.js";
 
-
-// export const uploadVideo = async (req, res) => {
-//   const { uid } = req.params;
-//   if (!req.file) {
-//     return res.status(400).json({ msg: "No file uploaded" });
-//   }
-
-//   try {
-//     const user = await User.findOne({ uid });
-//     if (!user) {
-//       return res.status(404).json({ msg: "User not found" });
-//     }
-
-//     const { path: url, filename: public_id, size } = req.file;
-//     const coverImage = url; // you can apply a transformation or poster later
-
-//     user.videos.push({ url, public_id, coverImage, sizeInBytes: size });
-//     await user.save();
-
-//     // return the newly‑added video object
-//     return res.json({ video: user.videos[user.videos.length - 1] });
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({ msg: "Upload failed", error: err.message });
-//   }
-// };
 export const uploadVideo = async (req, res) => {
   const { uid } = req.params;
   const { title } = req.body;
@@ -43,7 +16,7 @@ export const uploadVideo = async (req, res) => {
     }
 
     const { path: url, filename: public_id, size } = req.file;
-    const coverImage = url; // Future: you can generate a proper thumbnail if needed
+    const coverImage = url;  
 
     user.videos.push({
       url,
@@ -93,10 +66,9 @@ export const deleteVideo = async (req, res) => {
   const { public_id } = req.params;
 
   try {
-    // 1. Delete from Cloudinary
+    
     await cloudinary.uploader.destroy(public_id, { resource_type: "video" });
 
-    // 2. Pull video from the user's embedded array
     const updatedUser = await User.findOneAndUpdate(
       { "videos.public_id": public_id },
       { $pull: { videos: { public_id } } },

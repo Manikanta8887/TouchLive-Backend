@@ -1,4 +1,3 @@
-// Controllers/streamController.js
 import Stream from "../Models/Stream.js";
 
 export const saveEndedStream = async (streamData) => {

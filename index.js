@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
@@ -9,14 +8,11 @@ import profileRoutes from "./Routes/profileRoutes.js";
 import streamRoutes from "./Routes/streamRoutes.js";
 import { saveEndedStream, getEndedStreams } from "./Controllers/streamController.js";
 import videoRoutes   from "./Routes/videoRoutes.js";
-// import upload from "./middleware/upload.js";
-// import { uploadVideo } from "./Controllers/videoController.js";
 import updateUserProfile from "./Controllers/bioUpdate.js";
 
 const app = express();
 const server = createServer(app);
 
-// ✅ Inline Environment Configurations
 const PORT = 5000;
 const ENABLE_COOP = false;
 const ALLOWED_ORIGINS = [
@@ -26,9 +22,6 @@ const ALLOWED_ORIGINS = [
   "http://localhost:3000",
 ];
 
-
-
-// ✅ Optional COOP/COEP Headers
 if (ENABLE_COOP) {
   app.use((req, res, next) => {
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
@@ -53,8 +46,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 app.use("/api/videos", videoRoutes);
-// app.use("/api", videoRoutes);
-
 
 app.put("/api/users/:uid", updateUserProfile);
 
@@ -129,24 +120,17 @@ io.on("connection", (socket) => {
     socket.emit("start-stream", newStream);
   });
 
-  // --- Updated Signaling Events (Option B) ---
-
   socket.on("offer", ({ streamId, offer }) => {
-    // Broadcast offer to everyone in the room except the sender.
     socket.to(streamId).emit("offer", { offer, from: socket.id });
   });
 
   socket.on("answer", ({ streamId, answer }) => {
-    // Broadcast answer to everyone in the room except the sender.
     socket.to(streamId).emit("answer", { answer, from: socket.id });
   });
 
   socket.on("ice-candidate", ({ streamId, candidate }) => {
-    // Broadcast ICE candidate to everyone in the room.
     socket.to(streamId).emit("ice-candidate", { candidate, from: socket.id });
   });
-
-  // --- End of Updated Signaling Events ---
 
   socket.on("chat-message", (chatData) => {
     const streamId = chatData.streamId || socket.data.currentStreamId;

@@ -1,4 +1,3 @@
-// middleware/upload.js
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../utils/Cloudinary.js";

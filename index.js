@@ -18,17 +18,11 @@ const ENABLE_COOP = false;
 const ALLOWED_ORIGINS = [
   "https://full-stack-project-mani.vercel.app",
   "https://full-stack-project-rho.vercel.app",
+  "https://global.xirsys.net",
   "http://localhost:5000",
   "http://localhost:3000",
+  "http://localhost:5173"
 ];
-
-if (ENABLE_COOP) {
-  app.use((req, res, next) => {
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-    res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-    next();
-  });
-}
 
 const io = new Server(server, {
   cors: {
@@ -46,16 +40,16 @@ app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/streams", streamRoutes);
 app.use("/api/videos", videoRoutes);
-
 app.put("/api/users/:uid", updateUserProfile);
 
 let liveStreams = {};
 let streamerSocketMap = {};
 
 io.on("connection", (socket) => {
-  console.log(`✅ Socket connected: ${socket.id}`);
+  console.log(`✅ [Socket Connected] ID: ${socket.id}`);
 
   socket.on("get-streams", async () => {
+    console.log(`📡 [Get Streams] Requested by ${socket.id}`);
     const pastStreams = await getEndedStreams();
     socket.emit("stream-list", {
       liveStreams: Object.values(liveStreams),
@@ -64,10 +58,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("get-stream-info", ({ streamId }) => {
+    console.log(`ℹ️ [Stream Info] ${socket.id} requested info for stream ${streamId}`);
     socket.emit("stream-info", liveStreams[streamId] || null);
   });
 
   socket.on("join-stream", ({ streamId }) => {
+    console.log(`👀 [Join Stream] ${socket.id} joined stream ${streamId}`);
     socket.join(streamId);
     socket.data.currentStreamId = streamId;
 
@@ -87,6 +83,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leave-stream", ({ streamId }) => {
+    console.log(`👋 [Leave Stream] ${socket.id} left stream ${streamId}`);
     socket.leave(streamId);
     if (liveStreams[streamId]) {
       liveStreams[streamId].viewers = Math.max((liveStreams[streamId].viewers || 1) - 1, 0);
@@ -98,7 +95,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("start-stream", ({ streamTitle, streamerId, streamerName, profilePic }) => {
+  socket.on("start-stream", (data, ack) => {
+    console.log(`🎥 [Start Stream] Stream started by ${socket.id}`, data);
+    const { streamTitle, streamerId, streamerName, profilePic } = data;
     const id = streamerId || socket.id;
     const newStream = {
       id,
@@ -118,22 +117,27 @@ io.on("connection", (socket) => {
     socket.join(id);
     io.emit("update-streams", Object.values(liveStreams));
     socket.emit("start-stream", newStream);
+    if (typeof ack === "function") ack();
   });
 
   socket.on("offer", ({ streamId, offer }) => {
+    console.log(`📤 [WebRTC Offer] From ${socket.id} for stream ${streamId}`);
     socket.to(streamId).emit("offer", { offer, from: socket.id });
   });
 
   socket.on("answer", ({ streamId, answer }) => {
+    console.log(`📥 [WebRTC Answer] From ${socket.id} for stream ${streamId}`);
     socket.to(streamId).emit("answer", { answer, from: socket.id });
   });
 
   socket.on("ice-candidate", ({ streamId, candidate }) => {
+    console.log(`❄️ [ICE Candidate] From ${socket.id} for stream ${streamId}`);
     socket.to(streamId).emit("ice-candidate", { candidate, from: socket.id });
   });
 
   socket.on("chat-message", (chatData) => {
     const streamId = chatData.streamId || socket.data.currentStreamId;
+    console.log(`💬 [Chat Message] in stream ${streamId} from ${chatData.username}: ${chatData.message}`);
     if (streamId && liveStreams[streamId]) {
       liveStreams[streamId].chatMessages.push({
         sender: chatData.username,
@@ -145,6 +149,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("toggle-fullscreen", ({ streamId, isFullscreen }) => {
+    console.log(`🖥️ [Toggle Fullscreen] Stream ${streamId} set to fullscreen: ${isFullscreen}`);
     if (liveStreams[streamId]) {
       liveStreams[streamId].isFullscreen = isFullscreen;
       io.to(streamId).emit("update-streams", Object.values(liveStreams));
@@ -152,6 +157,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("rejoin-stream", ({ streamerId }) => {
+    console.log(`🔁 [Rejoin Stream] ${socket.id} rejoining stream ${streamerId}`);
     const stream = liveStreams[streamerId];
     if (stream) {
       socket.join(streamerId);
@@ -164,6 +170,7 @@ io.on("connection", (socket) => {
   socket.on("stop-stream", async () => {
     const streamerId = socket.data.streamerId;
     if (streamerId && liveStreams[streamerId]) {
+      console.log(`🛑 [Stop Stream] ${socket.id} ended stream ${streamerId}`);
       const endedStream = liveStreams[streamerId];
       endedStream.endTime = new Date();
       await saveEndedStream(endedStream);
@@ -175,6 +182,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
+    console.log(`❌ [Socket Disconnected] ID: ${socket.id}`);
+
     const currentStreamId = socket.data.currentStreamId;
     if (currentStreamId && liveStreams[currentStreamId]) {
       liveStreams[currentStreamId].viewers = Math.max((liveStreams[currentStreamId].viewers || 1) - 1, 0);
@@ -192,6 +201,7 @@ io.on("connection", (socket) => {
           (s) => s.data.streamerId === streamerId
         );
         if (!stillStreaming) {
+          console.log(`⚰️ [Cleanup] Streamer ${streamerId} fully disconnected. Ending stream.`);
           const endedStream = liveStreams[streamerId];
           endedStream.endTime = new Date();
           await saveEndedStream(endedStream);
@@ -202,8 +212,6 @@ io.on("connection", (socket) => {
         }
       }, 5000);
     }
-
-    console.log(` Socket disconnected: ${socket.id}`);
   });
 });
 

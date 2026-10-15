@@ -4,7 +4,7 @@ export const saveEndedStream = async (streamData) => {
   try {
     const { streamerId, streamTitle, startTime, chatMessages = [], viewers = 0 } = streamData;
     if (!streamerId || !streamTitle || !startTime) {
-      console.error("Missing stream data", streamData);
+      console.error("Missing stream data for saveEndedStream:", streamData);
       return;
     }
     const newStream = new Stream({
@@ -16,7 +16,7 @@ export const saveEndedStream = async (streamData) => {
       viewers,
     });
     await newStream.save();
-    console.log("✅ Stream saved");
+    console.log("✅ Stream saved to database successfully");
   } catch (err) {
     console.error("Error saving stream:", err);
   }
@@ -31,12 +31,20 @@ export const getEndedStreams = async () => {
   }
 };
 
-export const getActiveStreams = async (req, res) => {
+export const getActiveStreams = async (_req, res) => {
   try {
-    const active = await Stream.find({ endTime: null }).select("streamerId streamTitle startTime chatMessages");
-    res.json(active);
+    const active = await Stream.find({ endTime: null }).select("streamerId streamTitle startTime chatMessages viewers");
+    return res.json({
+      success: true,
+      message: "Fetched active streams",
+      data: { streams: active },
+    });
   } catch (err) {
-    res.status(500).json({ message: "Error retrieving active streams" });
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving active streams",
+      error: err.message,
+    });
   }
 };
 
@@ -44,10 +52,22 @@ export const getStreamChat = async (req, res) => {
   try {
     const { streamId } = req.params;
     const stream = await Stream.findById(streamId);
-    if (!stream) return res.status(404).json({ message: "Stream not found" });
-    res.json(stream.chatMessages);
+    if (!stream) {
+      return res.status(404).json({
+        success: false,
+        message: "Stream not found",
+      });
+    }
+    return res.json({
+      success: true,
+      data: { chatMessages: stream.chatMessages },
+    });
   } catch (err) {
-    res.status(500).json({ message: "Error retrieving chat messages" });
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving chat messages",
+      error: err.message,
+    });
   }
 };
 
@@ -55,8 +75,16 @@ export const getPastStreams = async (req, res) => {
   try {
     const { userId } = req.params;
     const past = await Stream.find({ streamerId: userId, endTime: { $ne: null } }).sort({ endTime: -1 });
-    res.json(past);
+    return res.json({
+      success: true,
+      message: "Fetched past streams successfully",
+      data: { streams: past },
+    });
   } catch (err) {
-    res.status(500).json({ message: "Error retrieving past streams" });
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving past streams",
+      error: err.message,
+    });
   }
 };
